@@ -4,6 +4,9 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 import sys
 
+import random
+import math
+
 class City(object):
     def __init__(self, name, x, y):
         self.name = name
@@ -25,6 +28,54 @@ class City(object):
     # def __gt__(self, other):
     #     return self.g > other.g
 
+
+def eval(path):
+    lenght = 0
+    oldCity = None
+    for city in path:
+        if(oldCity is not None):
+            lenght += math.sqrt((oldCity.x+city.x)**2 + (oldCity.y+city.y)**2)
+        else:
+            oldCity = city
+    
+    return lenght
+    
+def showPath(path):
+    for p in path:
+        print(p.name)
+
+def crossover(path1, path2, bInf, bSup):
+    pass
+    
+def mutate(path):
+    showPath(path)
+    a = random.randint(0, len(path))
+    b = random.randint(0, len(path))
+    path[a], path[b] = path[b], path[a]
+    showPath(path)
+
+
+def generatePopulation(cities, nPath):
+
+
+    path = []
+    population = []
+    for city in cities:
+        path.append(city)
+    for i in range(nPath):
+        population.append(random.sample(path, len(path)))
+        
+    for a in population:
+        print()
+        for w in a:
+            print(w.name)
+        print(eval(a))
+
+
+    
+    return(population)
+    
+    
 def showGUI(cities):
     screen_x = 500
     screen_y = 500
@@ -55,7 +106,7 @@ def showGUI(cities):
 
     collecting = True
 
-    i = 0
+    i = len(cities)
     while collecting:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -91,13 +142,16 @@ def readFile(filename, cities):
 
 def ga_solve(file=None, gui=True, maxtime=0):
     cities = []
+    if file is not None:
+        readFile(file, cities)
     if gui:
         showGUI(cities)
-    else:
-        readFile(file, cities)
 
     for city in cities:
         print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
+        
+    population = generatePopulation(cities, 8)
+    mutate(population[0])
 
 if __name__ == '__main__':
     filename = None;
