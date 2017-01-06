@@ -7,6 +7,9 @@ import sys
 import random
 import math
 
+# **************************************************************************** #
+# CLASS CITY
+# **************************************************************************** #
 class City(object):
     def __init__(self, name, x, y):
         self.name = name
@@ -28,7 +31,9 @@ class City(object):
     # def __gt__(self, other):
     #     return self.g > other.g
 
-
+# **************************************************************************** #
+# GENETIC ALGORITHM
+# **************************************************************************** #
 def eval(path):
     ''' Evaluation '''
     lenght = 0
@@ -107,7 +112,9 @@ def generatePopulation(cities, nPath):
 
     return(population)
 
-
+# **************************************************************************** #
+# FUNCTION TO SHOW GUI
+# **************************************************************************** #
 def showGUI(cities):
     screen_x = 500
     screen_y = 500
@@ -162,6 +169,9 @@ def showGUI(cities):
         event = pygame.event.wait()
         if event.type == KEYDOWN: break
 
+# **************************************************************************** #
+# FUNCTION TO READ A FILE
+# **************************************************************************** #
 def readFile(filename, cities):
     ''' Load cities from file and put in a list '''
     try:
@@ -172,6 +182,9 @@ def readFile(filename, cities):
     except FileNotFoundError:
         sys.exit("File positions.txt not found !")
 
+# **************************************************************************** #
+# GA_SOLVE => MAIN FUNCTION
+# **************************************************************************** #
 def ga_solve(file=None, gui=True, maxtime=0):
     cities = []
     if file is not None:
@@ -187,6 +200,9 @@ def ga_solve(file=None, gui=True, maxtime=0):
     crossover(population[0], population[1], 1, 2)
     # mutate(population[0])
 
+# **************************************************************************** #
+# ENTRY POINT
+# **************************************************************************** #
 if __name__ == '__main__':
     filename = None;
     gui = True;
