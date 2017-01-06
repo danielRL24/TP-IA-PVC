@@ -30,6 +30,7 @@ class City(object):
 
 
 def eval(path):
+    ''' Evaluation '''
     lenght = 0
     oldCity = None
     for city in path:
@@ -37,17 +38,51 @@ def eval(path):
             lenght += math.sqrt((oldCity.x+city.x)**2 + (oldCity.y+city.y)**2)
         else:
             oldCity = city
-    
+
     return lenght
-    
+
 def showPath(path):
+    ''' Affichage du chemin '''
+    result = ""
     for p in path:
-        print(p.name)
+        if p != "*" :
+            result += p.name
+        else :
+            result += "None"
+        result += " | "
+    print(result)
 
 def crossover(path1, path2, bInf, bSup):
-    pass
-    
+    ''' Croisement '''
+    crossValues = []
+    crossValues = [path2[i] for i in range(bInf, bSup+1)]
+
+    path3 = []
+    path3 = [x if x not in set(crossValues) else "*" for x in path1]
+    pathLength = len(path1)
+
+    stack = []
+
+    for i in range(0, pathLength) :
+        # print("I - " + str(i))
+        indexSup = (bSup-i) % pathLength
+        if path3[indexSup] != "*" :
+            indexInf = (bInf-1-i) % pathLength
+            if path3[indexInf] != "*" :
+                stack.append(path3[indexInf])
+            if indexSup < bInf or indexSup > bSup :
+                if stack is not None :
+                    path3[indexInf] = stack.pop()
+            else :
+                path3[indexInf] = path3[indexSup]
+
+    for i, j in zip(range(bInf, bSup+1), range(0, (bSup-bInf)+1)) :
+        path3[i] = crossValues[j]
+
+    return path3
+
 def mutate(path):
+    ''' Mutation '''
     showPath(path)
     a = random.randint(0, len(path))
     b = random.randint(0, len(path))
@@ -56,26 +91,23 @@ def mutate(path):
 
 
 def generatePopulation(cities, nPath):
-
-
+    ''' Generation de la population '''
     path = []
     population = []
     for city in cities:
         path.append(city)
     for i in range(nPath):
         population.append(random.sample(path, len(path)))
-        
+
     for a in population:
         print()
         for w in a:
             print(w.name)
         print(eval(a))
 
-
-    
     return(population)
-    
-    
+
+
 def showGUI(cities):
     screen_x = 500
     screen_y = 500
@@ -149,9 +181,11 @@ def ga_solve(file=None, gui=True, maxtime=0):
 
     for city in cities:
         print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
-        
+
     population = generatePopulation(cities, 8)
-    mutate(population[0])
+    # eval(population[0])
+    crossover(population[0], population[1], 1, 2)
+    # mutate(population[0])
 
 if __name__ == '__main__':
     filename = None;
