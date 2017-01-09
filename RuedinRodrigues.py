@@ -2,10 +2,11 @@ import sys
 
 import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
-import sys
 
 import random
 import math
+
+from collections import deque
 
 # **************************************************************************** #
 # CLASS CITY
@@ -32,8 +33,47 @@ class City(object):
     #     return self.g > other.g
 
 # **************************************************************************** #
+# CLASS PATH
+# **************************************************************************** #
+class Path(object):
+    def __init__(self, cities):
+        self.length = eval(cities)
+        self.cities = cities
+
+# **************************************************************************** #
+# SHOW A PATH
+# **************************************************************************** #
+def showPath(path):
+    ''' Affichage du chemin '''
+    result = ""
+    for p in path:
+        if p != "*" :
+            result += p.name
+        else :
+            result += "*"
+        result += " | "
+    print(result)
+
+# **************************************************************************** #
 # GENETIC ALGORITHM
 # **************************************************************************** #
+def generatePopulation(cities, nPath):
+    ''' Generation de la population '''
+    path = []
+    population = []
+    for city in cities:
+        path.append(city)
+    for i in range(nPath):
+        population.append(Path(random.sample(path, len(path))))
+
+    # for a in population:
+    #     print()
+    #     for w in a.cities:
+    #         print(w.name)
+    #     print(a.length)
+
+    return population
+
 def eval(path):
     ''' Evaluation '''
     lenght = 0
@@ -46,71 +86,59 @@ def eval(path):
 
     return lenght
 
-def showPath(path):
-    ''' Affichage du chemin '''
-    result = ""
-    for p in path:
-        if p != "*" :
-            result += p.name
-        else :
-            result += "None"
-        result += " | "
-    print(result)
+def selection(population):
+    ''' Sélection '''
+    population.sort(key=lambda x: x.length, reverse=False)
+
+    for i in range(0, len(population)):
+        pass
 
 def crossover(path1, path2, bInf, bSup):
     ''' Croisement '''
     crossValues = []
     crossValues = [path2[i] for i in range(bInf, bSup+1)]
+    print("-> x")
+    showPath(path1)
+    print("-> y")
+    showPath(path2)
+    print("-> cv")
+    showPath(crossValues)
 
     path3 = []
     path3 = [x if x not in set(crossValues) else "*" for x in path1]
     pathLength = len(path1)
 
-    stack = []
+    print("-> x'")
+    showPath(path3)
 
+    stack = deque()
+
+    j = 0
     for i in range(0, pathLength) :
-        # print("I - " + str(i))
         indexSup = (bSup-i) % pathLength
         if path3[indexSup] != "*" :
-            indexInf = (bInf-1-i) % pathLength
+            indexInf = (bInf-1-j) % pathLength
             if path3[indexInf] != "*" :
                 stack.append(path3[indexInf])
             if indexSup < bInf or indexSup > bSup :
-                if stack is not None :
-                    path3[indexInf] = stack.pop()
+                if len(stack) != 0:
+                    path3[indexInf] = stack.popleft()
             else :
                 path3[indexInf] = path3[indexSup]
+            j += 1
 
     for i, j in zip(range(bInf, bSup+1), range(0, (bSup-bInf)+1)) :
         path3[i] = crossValues[j]
 
+    print("-> x''")
+    showPath(path3)
     return path3
 
 def mutate(path):
     ''' Mutation '''
-    showPath(path)
     a = random.randint(0, len(path))
     b = random.randint(0, len(path))
     path[a], path[b] = path[b], path[a]
-    showPath(path)
-
-
-def generatePopulation(cities, nPath):
-    ''' Generation de la population '''
-    path = []
-    population = []
-    for city in cities:
-        path.append(city)
-    for i in range(nPath):
-        population.append(random.sample(path, len(path)))
-
-    for a in population:
-        print()
-        for w in a:
-            print(w.name)
-        print(eval(a))
-
-    return(population)
 
 # **************************************************************************** #
 # FUNCTION TO SHOW GUI
@@ -196,8 +224,15 @@ def ga_solve(file=None, gui=True, maxtime=0):
         print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
 
     population = generatePopulation(cities, 8)
+    # for i in population:
+    #     print(i.length)
+    #
+    # print()
+
+    # selection(population)
     # eval(population[0])
-    crossover(population[0], population[1], 1, 2)
+    # population0 = crossover(population[0], population[1], 1, 2)
+    # population1 = crossover(population[1], population[0], 1, 2)
     # mutate(population[0])
 
 # **************************************************************************** #
