@@ -1,12 +1,13 @@
 import sys
 
-import pygame
-from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
-
 import random
 import math
 
+import pygame
+from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
+
 from collections import deque
+from copy import deepcopy
 
 # **************************************************************************** #
 # CLASS CITY
@@ -35,10 +36,10 @@ class City(object):
 # **************************************************************************** #
 # CLASS PATH
 # **************************************************************************** #
-class Path(object):
-    def __init__(self, cities):
-        self.length = eval(cities)
-        self.cities = cities
+class Candidate(object):
+    def __init__(self, path, length):
+        self.length = int(length)
+        self.path = deepcopy(path)
 
 # **************************************************************************** #
 # SHOW A PATH
@@ -57,14 +58,15 @@ def showPath(path):
 # **************************************************************************** #
 # GENETIC ALGORITHM
 # **************************************************************************** #
-def generatePopulation(cities, nPath):
+def generatePopulation(cities, nCandidates):
     ''' Generation de la population '''
     path = []
     population = []
     for city in cities:
         path.append(city)
-    for i in range(nPath):
-        population.append(Path(random.sample(path, len(path))))
+    for i in range(nCandidates):
+        randomPath = random.sample(path, len(path))
+        population.append(Candidate(randomPath, eval(randomPath)))
 
     # for a in population:
     #     print()
@@ -89,29 +91,29 @@ def eval(path):
 def selection(population):
     ''' Sélection '''
     population.sort(key=lambda x: x.length, reverse=False)
-
-    for i in range(0, len(population)):
-        pass
+    random.seed();
+    choice = random.randint(0, len(population)-2)
+    return [population[choice], population[choice+1]]
 
 def crossover(path1, path2, bInf, bSup):
     ''' Croisement '''
     crossValues = []
     crossValues = [path2[i] for i in range(bInf, bSup+1)]
-    print("-> x")
-    showPath(path1)
-    print("-> y")
-    showPath(path2)
-    print("-> cv")
-    showPath(crossValues)
+    # print("-> x")
+    # showPath(path1)
+    # print("-> y")
+    # showPath(path2)
+    # print("-> cv")
+    # showPath(crossValues)
 
     path3 = []
     path3 = [x if x not in set(crossValues) else "*" for x in path1]
     pathLength = len(path1)
 
-    print("-> x'")
-    showPath(path3)
+    # print("-> x'")
+    # showPath(path3)
 
-    stack = deque()
+    tmp = deque()
 
     j = 0
     for i in range(0, pathLength) :
@@ -119,10 +121,10 @@ def crossover(path1, path2, bInf, bSup):
         if path3[indexSup] != "*" :
             indexInf = (bInf-1-j) % pathLength
             if path3[indexInf] != "*" :
-                stack.append(path3[indexInf])
+                tmp.append(path3[indexInf])
             if indexSup < bInf or indexSup > bSup :
-                if len(stack) != 0:
-                    path3[indexInf] = stack.popleft()
+                if len(tmp) != 0:
+                    path3[indexInf] = tmp.popleft()
             else :
                 path3[indexInf] = path3[indexSup]
             j += 1
@@ -130,20 +132,20 @@ def crossover(path1, path2, bInf, bSup):
     for i, j in zip(range(bInf, bSup+1), range(0, (bSup-bInf)+1)) :
         path3[i] = crossValues[j]
 
-    print("-> x''")
-    showPath(path3)
+    # print("-> x''")
+    # showPath(path3)
     return path3
 
 def mutate(path):
     ''' Mutation '''
-    a = random.randint(0, len(path))
-    b = random.randint(0, len(path))
+    a = random.randint(0, len(path)-1)
+    b = random.randint(0, len(path)-1)
     path[a], path[b] = path[b], path[a]
 
 # **************************************************************************** #
 # FUNCTION TO SHOW GUI
 # **************************************************************************** #
-def showGUI(cities):
+def showGUI(cities, collecting=True):
     screen_x = 500
     screen_y = 500
 
@@ -168,10 +170,22 @@ def showGUI(cities):
         screen.blit(text, textRect)
         pygame.display.flip()
 
+    def travel():
+        screen.fill(0)
+        for i in range(0, len(cities)-1):
+            pygame.draw.line(screen, city_color, [cities[i].x, cities[i].y], [cities[i+1].x, cities[i+1].y])
+        # pygame.draw.lines(screen,city_color,True,cities)
+        text = font.render("Un chemin, pas le meilleur!", True, font_color)
+        textRect = text.get_rect()
+        screen.blit(text, textRect)
+        pygame.display.flip()
+
     # cities = []
     draw(cities)
 
-    collecting = True
+    if not collecting :
+        travel()
+
 
     i = len(cities)
     while collecting:
@@ -185,13 +199,6 @@ def showGUI(cities):
                 # cities.append(pygame.mouse.get_pos())
                 draw(cities)
                 i += 1
-
-    screen.fill(0)
-    # pygame.draw.lines(screen,city_color,True,cities)
-    text = font.render("Un chemin, pas le meilleur!", True, font_color)
-    textRect = text.get_rect()
-    screen.blit(text, textRect)
-    pygame.display.flip()
 
     while True:
         event = pygame.event.wait()
@@ -220,21 +227,23 @@ def ga_solve(file=None, gui=True, maxtime=0):
     if gui:
         showGUI(cities)
 
-    for city in cities:
-        print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
+    # for city in cities:
+    #     print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
 
-    population = generatePopulation(cities, 8)
-    # for i in population:
-    #     print(i.length)
-    #
-    # print()
+    i = 0
+    while(i < 10) :
+        population = generatePopulation(cities, 8)
+        candidate1, candidate2 = selection(population)
+        candidate1.path = deepcopy(crossover(candidate1.path, candidate2.path, 1, 2))
+        candidate2.path = deepcopy(crossover(candidate2.path, candidate1.path, 1, 2))
+        for c in population :
+            mutate(c.path)
 
-    # selection(population)
-    # eval(population[0])
-    # population0 = crossover(population[0], population[1], 1, 2)
-    # population1 = crossover(population[1], population[0], 1, 2)
-    # mutate(population[0])
+        i += 1
 
+    showPath(population[0].path)
+    if(gui):
+        showGUI(population[0].path, False)
 # **************************************************************************** #
 # ENTRY POINT
 # **************************************************************************** #
@@ -256,7 +265,7 @@ if __name__ == '__main__':
             filename = sys.argv[i]
 
 
-    print(filename)
+    # print(filename)
     # print(gui)
     # print(maxtime)
 
