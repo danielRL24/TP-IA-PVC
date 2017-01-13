@@ -239,23 +239,27 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     # while(i < 10) :
 
     # TODO Nombre impaire
-    sizePop = 8;
+    sizePop = 32000;
     survivorPop = int(sizePop/2);
 
+
+
     population = generatePopulation(cities, sizePop)
+    nCities = len(population[0].path)
 
     startTime = time.time()
 
-    print(time.time()-startTime)
-    print(maxtime)
+
 
     while((time.time()-startTime) < maxtime):
         selection(population, survivorPop+1)
         # print("sel" + str(len(population)))
-        print(population[0].length)
+        # print(population[0].length)
         for i in range(0, survivorPop-1, 2):
             # print("act" + str(len(population)))
-            population.append(crossover(population[random.randint(0,survivorPop-1)].path, population[random.randint(0,survivorPop-1)].path, 1, 3))
+            crossBegin = random.randint(0,nCities-2);
+            crossEnd = random.randint(crossBegin, nCities-1)
+            population.append(crossover(population[random.randint(0,survivorPop-1)].path, population[random.randint(0,survivorPop-1)].path, crossBegin, crossEnd))
             # population.append(mutate(population[random.randint(0,survivorPop-1)].path))
             population.append(mutate(population[0].path))
 
