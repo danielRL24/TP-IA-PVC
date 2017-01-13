@@ -40,7 +40,8 @@ class City(object):
 class Candidate(object):
     def __init__(self, path, length):
         self.length = int(length)
-        self.path = deepcopy(path)
+        # self.path = deepcopy(path)
+        self.path = path
 
 # **************************************************************************** #
 # SHOW A PATH
@@ -110,7 +111,12 @@ def crossover(path1, path2, bInf, bSup):
     # showPath(crossValues)
 
     path3 = []
-    path3 = [x if x not in set(crossValues) else "*" for x in path1]
+    for x in path1:
+        if(x not in set(crossValues)):
+            path3.append(x)
+        else:
+            path3.append("*")
+    # path3 = [x if x not in set(crossValues) else "*" for x in path1]
     pathLength = len(path1)
 
     # print("-> x'")
@@ -136,6 +142,11 @@ def crossover(path1, path2, bInf, bSup):
         path3[i] = crossValues[j]
 
     # print("-> x''")
+    # # print("path1")
+    # # showPath(path1)
+    # # print("path2")
+    # # showPath(path2)
+    # # print("inf " + str(bInf) + " sup" + str(bSup))
     # showPath(path3)
     return Candidate(path3, eval(path3))
 
@@ -239,8 +250,8 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     # while(i < 10) :
 
     # TODO Nombre impaire
-    sizePop = 32000;
-    survivorPop = int(sizePop/2);
+    sizePop = 8
+    survivorPop = int(sizePop/2)
 
 
 
@@ -249,18 +260,24 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
 
     startTime = time.time()
 
-
+    once = True
 
     while((time.time()-startTime) < maxtime):
+
+        once = False
+
         selection(population, survivorPop+1)
         # print("sel" + str(len(population)))
-        # print(population[0].length)
+        print(population[0].length)
         for i in range(0, survivorPop-1, 2):
             # print("act" + str(len(population)))
-            crossBegin = random.randint(0,nCities-2);
-            crossEnd = random.randint(crossBegin, nCities-1)
+            crossBegin = random.randint(1,nCities-2)
+            crossEnd = random.randint(crossBegin+1, nCities-1)
+            # print(crossBegin)
+            # print("end " + str(crossEnd))
             population.append(crossover(population[random.randint(0,survivorPop-1)].path, population[random.randint(0,survivorPop-1)].path, crossBegin, crossEnd))
             # population.append(mutate(population[random.randint(0,survivorPop-1)].path))
+            # population.append(mutate(population[0].path))
             population.append(mutate(population[0].path))
 
     # for p in population:
