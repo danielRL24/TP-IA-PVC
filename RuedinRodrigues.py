@@ -2,6 +2,7 @@ import sys
 
 import random
 import math
+import time
 
 import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
@@ -85,15 +86,17 @@ def eval(path):
             lenght += math.sqrt((oldCity.x+city.x)**2 + (oldCity.y+city.y)**2)
         else:
             oldCity = city
+    lenght += math.sqrt((path[0].x+path[-1].x)**2 + (path[0].y+path[-1].y)**2)
 
     return lenght
 
-def selection(population):
+def selection(population, size):
     ''' Sélection '''
     population.sort(key=lambda x: x.length, reverse=False)
-    random.seed();
-    choice = random.randint(0, len(population)-2)
-    return [population[choice], population[choice+1]]
+    del population[-(len(population)-size+1):]
+    # random.seed();
+    # choice = random.randint(0, len(population)-2)
+    # return [population[choice], population[choice+1]]
 
 def crossover(path1, path2, bInf, bSup):
     ''' Croisement '''
@@ -134,13 +137,15 @@ def crossover(path1, path2, bInf, bSup):
 
     # print("-> x''")
     # showPath(path3)
-    return path3
+    return Candidate(path3, eval(path3))
 
 def mutate(path):
     ''' Mutation '''
+    newpath = deepcopy(path)
     a = random.randint(0, len(path)-1)
     b = random.randint(0, len(path)-1)
-    path[a], path[b] = path[b], path[a]
+    newpath[a], newpath[b] = newpath[b], newpath[a]
+    return Candidate(newpath, eval(newpath))
 
 # **************************************************************************** #
 # FUNCTION TO SHOW GUI
@@ -220,7 +225,7 @@ def readFile(filename, cities):
 # **************************************************************************** #
 # GA_SOLVE => MAIN FUNCTION
 # **************************************************************************** #
-def ga_solve(file=None, gui=True, maxtime=0):
+def ga_solve(file=None, gui=True, maxtime=0.05):
     cities = []
     if file is not None:
         readFile(file, cities)
@@ -231,17 +236,44 @@ def ga_solve(file=None, gui=True, maxtime=0):
     #     print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
 
     i = 0
-    while(i < 10) :
-        population = generatePopulation(cities, 8)
-        candidate1, candidate2 = selection(population)
-        candidate1.path = deepcopy(crossover(candidate1.path, candidate2.path, 1, 2))
-        candidate2.path = deepcopy(crossover(candidate2.path, candidate1.path, 1, 2))
-        for c in population :
-            mutate(c.path)
+    # while(i < 10) :
 
-        i += 1
+    # TODO Nombre impaire
+    sizePop = 8;
+    survivorPop = int(sizePop/2);
 
+    population = generatePopulation(cities, sizePop)
+
+    startTime = time.time()
+
+    print(time.time()-startTime)
+    print(maxtime)
+
+    while((time.time()-startTime) < maxtime):
+        selection(population, survivorPop+1)
+        # print("sel" + str(len(population)))
+        print(population[0].length)
+        for i in range(0, survivorPop-1, 2):
+            # print("act" + str(len(population)))
+            population.append(crossover(population[random.randint(0,survivorPop-1)].path, population[random.randint(0,survivorPop-1)].path, 1, 3))
+            # population.append(mutate(population[random.randint(0,survivorPop-1)].path))
+            population.append(mutate(population[0].path))
+
+    # for p in population:
+        # showPath(p.path)
+
+
+        # candidate1, candidate2 = selection(population)
+        # candidate1.path = deepcopy(crossover(candidate1.path, candidate2.path, 1, 2))
+        # candidate2.path = deepcopy(crossover(candidate2.path, candidate1.path, 1, 2))
+        # for c in population :
+        #     mutate(c.path)
+
+        # i += 1
+
+    selection(population, 4)
     showPath(population[0].path)
+    print(population[0].length)
     if(gui):
         showGUI(population[0].path, False)
 # **************************************************************************** #
@@ -250,7 +282,7 @@ def ga_solve(file=None, gui=True, maxtime=0):
 if __name__ == '__main__':
     filename = None;
     gui = True;
-    maxtime = 0;
+    maxtime = 5;
 
     if("--nogui" in sys.argv):
         gui = False;
