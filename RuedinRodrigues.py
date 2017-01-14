@@ -8,7 +8,7 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 
 from collections import deque
-from copy import deepcopy
+from copy import copy
 
 # **************************************************************************** #
 # CLASS CITY
@@ -85,8 +85,7 @@ def eval(path):
     for city in path:
         if(oldCity is not None):
             lenght += math.sqrt((oldCity.x+city.x)**2 + (oldCity.y+city.y)**2)
-        else:
-            oldCity = city
+        oldCity = city
     lenght += math.sqrt((path[0].x+path[-1].x)**2 + (path[0].y+path[-1].y)**2)
 
     return lenght
@@ -103,6 +102,7 @@ def crossover(path1, path2, bInf, bSup):
     ''' Croisement '''
     crossValues = []
     crossValues = [path2[i] for i in range(bInf, bSup+1)]
+    # print("inf " + str(bInf) + " sup" + str(bSup))
     # print("-> x")
     # showPath(path1)
     # print("-> y")
@@ -118,7 +118,7 @@ def crossover(path1, path2, bInf, bSup):
             path3.append("*")
     # path3 = [x if x not in set(crossValues) else "*" for x in path1]
     pathLength = len(path1)
-
+    #
     # print("-> x'")
     # showPath(path3)
 
@@ -142,17 +142,14 @@ def crossover(path1, path2, bInf, bSup):
         path3[i] = crossValues[j]
 
     # print("-> x''")
-    # # print("path1")
-    # # showPath(path1)
-    # # print("path2")
-    # # showPath(path2)
-    # # print("inf " + str(bInf) + " sup" + str(bSup))
+    #
+    #
     # showPath(path3)
     return Candidate(path3, eval(path3))
 
 def mutate(path):
     ''' Mutation '''
-    newpath = deepcopy(path)
+    newpath = copy(path)
     a = random.randint(0, len(path)-1)
     b = random.randint(0, len(path)-1)
     newpath[a], newpath[b] = newpath[b], newpath[a]
@@ -250,7 +247,10 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     # while(i < 10) :
 
     # TODO Nombre impaire
-    sizePop = 8
+    sizePop = 60
+    maxRepeat = 10000
+
+
     survivorPop = int(sizePop/2)
 
 
@@ -262,23 +262,39 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
 
     once = True
 
-    while((time.time()-startTime) < maxtime):
+    lastLength = 0
+    lastLengthRepeat = 0
 
-        once = False
+
+    while((time.time()-startTime) < maxtime and once):
+
+        once = True
 
         selection(population, survivorPop+1)
         # print("sel" + str(len(population)))
-        print(population[0].length)
+        # print(population[0].length)
+        if(population[0].length == lastLength):
+            lastLengthRepeat+=1
+
+        else:
+            lastLengthRepeat = 0
+
+        if(lastLengthRepeat > maxRepeat):
+            print("break " + str(time.time()-startTime))
+            break
+
+        lastLength = population[0].length
+
         for i in range(0, survivorPop-1, 2):
             # print("act" + str(len(population)))
             crossBegin = random.randint(1,nCities-2)
             crossEnd = random.randint(crossBegin+1, nCities-1)
             # print(crossBegin)
             # print("end " + str(crossEnd))
-            population.append(crossover(population[random.randint(0,survivorPop-1)].path, population[random.randint(0,survivorPop-1)].path, crossBegin, crossEnd))
+            population.append(crossover(population[random.randint(0,int(survivorPop-1))].path, population[random.randint(0,survivorPop-1)].path, crossBegin, crossEnd))
             # population.append(mutate(population[random.randint(0,survivorPop-1)].path))
             # population.append(mutate(population[0].path))
-            population.append(mutate(population[0].path))
+            population.append(mutate(population[random.randint(0,int(survivorPop/9)-1)].path))
 
     # for p in population:
         # showPath(p.path)
