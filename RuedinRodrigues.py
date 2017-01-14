@@ -212,19 +212,17 @@ def readFile(filename, cities):
 # GA_SOLVE => MAIN FUNCTION
 # **************************************************************************** #
 def ga_solve(file=None, gui=True, maxtime=0.05):
+
+    startTime = time.time()
+
     cities = []
     if file is not None:
         readFile(file, cities)
     if gui:
         showGUI(cities)
 
-    # for city in cities:
-    #     print(city.name + "(" + str(city.x) +  ", " + str(city.y) + ")")
-
     i = 0
-    # while(i < 10) :
 
-    # TODO Nombre impaire
     sizePop = 60
     maxRepeat = 10000
 
@@ -233,18 +231,16 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     population = generatePopulation(cities, sizePop)
     nCities = len(population[0].path)
 
-    startTime = time.time()
 
-    once = True
 
     lastLength = 0
     lastLengthRepeat = 0
 
-    while((time.time()-startTime) < maxtime and once):
-        once = True
+    while((time.time()-startTime) < maxtime):
+        # Kill bad populatoin
         selection(population, survivorPop+1)
-        # print("sel" + str(len(population)))
-        # print(population[0].length)
+
+        # Stagnation detect
         if(population[0].length == lastLength):
             lastLengthRepeat+=1
         else:
@@ -254,37 +250,23 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
             showGUI(population[0].path, False, False)
 
         if(lastLengthRepeat > maxRepeat):
-            # print("break " + str(time.time()-startTime))
             break
 
         lastLength = population[0].length
 
+        # repopulate
         for i in range(0, survivorPop-1, 2):
-            # print("act" + str(len(population)))
+            # Define random limits for crossover
             crossBegin = random.randint(1,nCities-2)
             crossEnd = random.randint(crossBegin+1, nCities-1)
-            # print(crossBegin)
-            # print("end " + str(crossEnd))
+            # random crossover
             population.append(crossover(population[random.randint(0,int(survivorPop-1))].path, population[random.randint(0,survivorPop-1)].path, crossBegin, crossEnd))
-            # population.append(mutate(population[random.randint(0,survivorPop-1)].path))
-            # population.append(mutate(population[0].path))
-            population.append(mutate(population[random.randint(0,int(survivorPop/9)-1)].path))
+            # random mutation
+            population.append(mutate(population[random.randint(0,int(survivorPop)-1)].path))
 
-    # for p in population:
-        # showPath(p.path)
+    # last sort
+    population.sort(key=lambda x: x.length, reverse=False)
 
-
-        # candidate1, candidate2 = selection(population)
-        # candidate1.path = deepcopy(crossover(candidate1.path, candidate2.path, 1, 2))
-        # candidate2.path = deepcopy(crossover(candidate2.path, candidate1.path, 1, 2))
-        # for c in population :
-        #     mutate(c.path)
-
-        # i += 1
-
-    selection(population, 4)
-    # showPath(population[0].path)
-    # print(population[0].length)
     if(gui):
         showGUI(population[0].path, False, True)
 
@@ -313,4 +295,4 @@ if __name__ == '__main__':
         if sys.argv[i][0] != '-' and sys.argv[i-1] != "--maxtime":
             filename = sys.argv[i]
 
-    ga_solve(filename, gui, maxtime)
+    print(ga_solve(filename, gui, maxtime)[0])
