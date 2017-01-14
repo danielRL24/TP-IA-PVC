@@ -19,21 +19,6 @@ class City(object):
         self.x = int(x)
         self.y = int(y)
 
-    # def __iter__(self):
-    #     return iter(self.connections.items())
-
-    # def __hash__(self):
-    #     return str(self).__hash__()
-
-    # def __str__(self):
-    #     return str(self.name)
-
-    # def __eq__(self, other):
-    #     return self.name == other.name
-
-    # def __gt__(self, other):
-    #     return self.g > other.g
-
 # **************************************************************************** #
 # CLASS PATH
 # **************************************************************************** #
@@ -102,13 +87,6 @@ def crossover(path1, path2, bInf, bSup):
     ''' Croisement '''
     crossValues = []
     crossValues = [path2[i] for i in range(bInf, bSup+1)]
-    # print("inf " + str(bInf) + " sup" + str(bSup))
-    # print("-> x")
-    # showPath(path1)
-    # print("-> y")
-    # showPath(path2)
-    # print("-> cv")
-    # showPath(crossValues)
 
     path3 = []
     for x in path1:
@@ -116,11 +94,7 @@ def crossover(path1, path2, bInf, bSup):
             path3.append(x)
         else:
             path3.append("*")
-    # path3 = [x if x not in set(crossValues) else "*" for x in path1]
     pathLength = len(path1)
-    #
-    # print("-> x'")
-    # showPath(path3)
 
     tmp = deque()
 
@@ -141,10 +115,6 @@ def crossover(path1, path2, bInf, bSup):
     for i, j in zip(range(bInf, bSup+1), range(0, (bSup-bInf)+1)) :
         path3[i] = crossValues[j]
 
-    # print("-> x''")
-    #
-    #
-    # showPath(path3)
     return Candidate(path3, eval(path3))
 
 def mutate(path):
