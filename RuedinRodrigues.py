@@ -84,7 +84,7 @@ def eval(path):
     oldCity = None
     for city in path:
         if(oldCity is not None):
-            lenght += math.sqrt((oldCity.x+city.x)**2 + (oldCity.y+city.y)**2)
+            lenght += math.sqrt((abs(oldCity.x-city.x))**2 + (abs(oldCity.y-city.y))**2)
         oldCity = city
     lenght += math.sqrt((path[0].x+path[-1].x)**2 + (path[0].y+path[-1].y)**2)
 
@@ -169,7 +169,7 @@ def showGUI(cities, collecting=True, last=False):
 
     pygame.init()
     window = pygame.display.set_mode((screen_x, screen_y))
-    pygame.display.set_caption('Exemple')
+    pygame.display.set_caption('PVC - Ruedin & Rodrigues')
     screen = pygame.display.get_surface()
     font = pygame.font.Font(None,30)
 
@@ -257,10 +257,7 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     sizePop = 60
     maxRepeat = 10000
 
-
     survivorPop = int(sizePop/2)
-
-
 
     population = generatePopulation(cities, sizePop)
     nCities = len(population[0].path)
@@ -272,17 +269,13 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     lastLength = 0
     lastLengthRepeat = 0
 
-
     while((time.time()-startTime) < maxtime and once):
-
         once = True
-
         selection(population, survivorPop+1)
         # print("sel" + str(len(population)))
         # print(population[0].length)
         if(population[0].length == lastLength):
             lastLengthRepeat+=1
-
         else:
             lastLengthRepeat = 0
 
