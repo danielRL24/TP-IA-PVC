@@ -26,7 +26,6 @@ class City(object):
 class Candidate(object):
     def __init__(self, path, length):
         self.length = int(length)
-        # self.path = deepcopy(path)
         self.path = path
 
 # **************************************************************************** #
@@ -71,12 +70,9 @@ def eval(path):
     return lenght
 
 def selection(population, size):
-    ''' Sélection '''
+    ''' Selection '''
     population.sort(key=lambda x: x.length, reverse=False)
     del population[-(len(population)-size+1):]
-    # random.seed();
-    # choice = random.randint(0, len(population)-2)
-    # return [population[choice], population[choice+1]]
 
 def crossover(path1, path2, bInf, bSup):
     ''' Croisement '''
@@ -125,6 +121,7 @@ def mutate(path):
 # FUNCTION TO SHOW GUI
 # **************************************************************************** #
 def showGUI(cities, collecting=True, last=False):
+    ''' Affichage de la GUI '''
     screen_x = 500
     screen_y = 500
 
@@ -140,19 +137,19 @@ def showGUI(cities, collecting=True, last=False):
     font = pygame.font.Font(None,30)
 
     def drawCities(cities, collecting):
+        ''' Dessiner les villes '''
         screen.fill(0)
         for city in cities:
             pygame.draw.circle(screen,city_color,(city.x, city.y),city_radius)
-            # pygame.draw.circle(screen,city_color,pos,city_radius)
         text = font.render("Nombre: %i" % len(cities), True, font_color)
         textRect = text.get_rect()
         screen.blit(text, textRect)
         pygame.display.flip()
         if collecting:
             collectCities(cities)
-            # waitKeyDown()
 
     def drawPath(cities, last):
+        ''' Dessiner le chemin entre les villes '''
         drawCities(cities, collecting);
         screen.fill(0)
         for i in range(0, len(cities)-1):
@@ -171,6 +168,7 @@ def showGUI(cities, collecting=True, last=False):
             pygame.quit()
 
     def collectCities(cities):
+        ''' Introduction des villes à l'aide de la GUI '''
         i = len(cities)
         collecting = True
         while collecting:
@@ -181,11 +179,11 @@ def showGUI(cities, collecting=True, last=False):
                     collecting = False
                 elif event.type == MOUSEBUTTONDOWN:
                     cities.append(City("v"+str(i), pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]))
-                    # cities.append(pygame.mouse.get_pos())
                     drawCities(cities, False)
                     i += 1
 
     def waitKeyDown():
+        ''' Attente qu'une touche soit pressée '''
         while True:
             event = pygame.event.wait()
             if event.type == KEYDOWN: break
@@ -230,8 +228,6 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
 
     population = generatePopulation(cities, sizePop)
     nCities = len(population[0].path)
-
-
 
     lastLength = 0
     lastLengthRepeat = 0
@@ -295,4 +291,7 @@ if __name__ == '__main__':
         if sys.argv[i][0] != '-' and sys.argv[i-1] != "--maxtime":
             filename = sys.argv[i]
 
-    print(ga_solve(filename, gui, maxtime)[0])
+    length, path = ga_solve(filename, gui, maxtime)
+
+    print("Distance : " + str(length))
+    print("Path : " + "-".join(path))
