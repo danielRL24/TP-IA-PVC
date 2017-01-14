@@ -158,7 +158,7 @@ def mutate(path):
 # **************************************************************************** #
 # FUNCTION TO SHOW GUI
 # **************************************************************************** #
-def showGUI(cities, collecting=True):
+def showGUI(cities, collecting=True, last=False):
     screen_x = 500
     screen_y = 500
 
@@ -173,49 +173,56 @@ def showGUI(cities, collecting=True):
     screen = pygame.display.get_surface()
     font = pygame.font.Font(None,30)
 
-    def draw(positions):
+    def drawCities(cities, collecting):
         screen.fill(0)
-        for pos in positions:
-            pygame.draw.circle(screen,city_color,(pos.x, pos.y),city_radius)
+        for city in cities:
+            pygame.draw.circle(screen,city_color,(city.x, city.y),city_radius)
             # pygame.draw.circle(screen,city_color,pos,city_radius)
-        text = font.render("Nombre: %i" % len(positions), True, font_color)
+        text = font.render("Nombre: %i" % len(cities), True, font_color)
         textRect = text.get_rect()
         screen.blit(text, textRect)
         pygame.display.flip()
+        if collecting:
+            collectCities(cities)
+            # waitKeyDown()
 
-    def travel():
+    def drawPath(cities, last):
+        drawCities(cities, collecting);
         screen.fill(0)
         for i in range(0, len(cities)-1):
             pygame.draw.line(screen, city_color, [cities[i].x, cities[i].y], [cities[i+1].x, cities[i+1].y])
-        # pygame.draw.lines(screen,city_color,True,cities)
-        text = font.render("Un chemin, pas le meilleur!", True, font_color)
+        pygame.draw.line(screen, city_color, [cities[0].x, cities[0].y], [cities[-1].x, cities[-1].y])
+        text = font.render("Un chemin", True, font_color)
         textRect = text.get_rect()
         screen.blit(text, textRect)
         pygame.display.flip()
+        if last:
+            waitKeyDown()
 
-    # cities = []
-    draw(cities)
+    def collectCities(cities):
+        i = len(cities)
+        collecting = True
+        while collecting:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    sys.exit(0)
+                elif event.type == KEYDOWN and event.key == K_RETURN:
+                    collecting = False
+                elif event.type == MOUSEBUTTONDOWN:
+                    cities.append(City("v"+str(i), pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]))
+                    # cities.append(pygame.mouse.get_pos())
+                    drawCities(cities, False)
+                    i += 1
 
-    if not collecting :
-        travel()
+    def waitKeyDown():
+        while True:
+            event = pygame.event.wait()
+            if event.type == KEYDOWN: break
 
-
-    i = len(cities)
-    while collecting:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                sys.exit(0)
-            elif event.type == KEYDOWN and event.key == K_RETURN:
-                collecting = False
-            elif event.type == MOUSEBUTTONDOWN:
-                cities.append(City("v"+str(i), pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]))
-                # cities.append(pygame.mouse.get_pos())
-                draw(cities)
-                i += 1
-
-    while True:
-        event = pygame.event.wait()
-        if event.type == KEYDOWN: break
+    if collecting:
+        drawCities(cities, collecting)
+    else:
+        drawPath(cities, last)
 
 # **************************************************************************** #
 # FUNCTION TO READ A FILE
@@ -312,7 +319,7 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     showPath(population[0].path)
     print(population[0].length)
     if(gui):
-        showGUI(population[0].path, False)
+        showGUI(population[0].path, False, True)
 # **************************************************************************** #
 # ENTRY POINT
 # **************************************************************************** #
