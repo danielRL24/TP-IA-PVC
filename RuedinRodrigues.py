@@ -8,6 +8,7 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 
 from collections import deque
+import queue
 from copy import copy
 
 # **************************************************************************** #
@@ -55,12 +56,6 @@ def generatePopulation(cities, nCandidates):
         randomPath = random.sample(path, len(path))
         population.append(Candidate(randomPath, eval(randomPath)))
 
-    # for a in population:
-    #     print()
-    #     for w in a.cities:
-    #         print(w.name)
-    #     print(a.length)
-
     return population
 
 def eval(path):
@@ -69,9 +64,9 @@ def eval(path):
     oldCity = None
     for city in path:
         if(oldCity is not None):
-            lenght += math.sqrt((abs(oldCity.x-city.x))**2 + (abs(oldCity.y-city.y))**2)
+            lenght += math.hypot(oldCity.x-city.x, oldCity.y-city.y)
         oldCity = city
-    lenght += math.sqrt((path[0].x+path[-1].x)**2 + (path[0].y+path[-1].y)**2)
+    lenght += math.hypot(path[0].x-path[-1].x, path[0].y-path[-1].y)
 
     return lenght
 
@@ -88,6 +83,7 @@ def crossover(path1, path2, bInf, bSup):
     crossValues = []
     crossValues = [path2[i] for i in range(bInf, bSup+1)]
 
+    # New path without the values to cross
     path3 = []
     for x in path1:
         if(x not in set(crossValues)):
@@ -98,20 +94,20 @@ def crossover(path1, path2, bInf, bSup):
 
     tmp = deque()
 
-    j = 0
-    for i in range(0, pathLength) :
-        indexSup = (bSup-i) % pathLength
-        if path3[indexSup] != "*" :
-            indexInf = (bInf-1-j) % pathLength
-            if path3[indexInf] != "*" :
-                tmp.append(path3[indexInf])
-            if indexSup < bInf or indexSup > bSup :
-                if len(tmp) != 0:
-                    path3[indexInf] = tmp.popleft()
-            else :
-                path3[indexInf] = path3[indexSup]
-            j += 1
+    # Save the remaining cities
+    for i in range(0, pathLength):
+        index = (bSup-i) % pathLength
+        if path3[index] != "*":
+            tmp.append(path3[index])
 
+    # Replacing the remaining cities
+    i = 1
+    while len(tmp) > 0:
+        index = (bInf-i) % pathLength
+        path3[index] = tmp.popleft();
+        i += 1
+
+    # Insert the values from the second path
     for i, j in zip(range(bInf, bSup+1), range(0, (bSup-bInf)+1)) :
         path3[i] = crossValues[j]
 
@@ -162,12 +158,17 @@ def showGUI(cities, collecting=True, last=False):
         for i in range(0, len(cities)-1):
             pygame.draw.line(screen, city_color, [cities[i].x, cities[i].y], [cities[i+1].x, cities[i+1].y])
         pygame.draw.line(screen, city_color, [cities[0].x, cities[0].y], [cities[-1].x, cities[-1].y])
-        text = font.render("Un chemin", True, font_color)
+        if last:
+            text = font.render("La meilleures solution trouvée", True, font_color)
+        else:
+            text = font.render("Un chemin", True, font_color)
         textRect = text.get_rect()
         screen.blit(text, textRect)
         pygame.display.flip()
         if last:
             waitKeyDown()
+        else :
+            pygame.quit()
 
     def collectCities(cities):
         i = len(cities)
@@ -249,8 +250,11 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
         else:
             lastLengthRepeat = 0
 
+        if(gui):
+            showGUI(population[0].path, False, False)
+
         if(lastLengthRepeat > maxRepeat):
-            print("break " + str(time.time()-startTime))
+            # print("break " + str(time.time()-startTime))
             break
 
         lastLength = population[0].length
@@ -279,10 +283,16 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
         # i += 1
 
     selection(population, 4)
-    showPath(population[0].path)
-    print(population[0].length)
+    # showPath(population[0].path)
+    # print(population[0].length)
     if(gui):
         showGUI(population[0].path, False, True)
+
+    result = []
+    for city in population[0].path:
+        result.append(city.name)
+
+    return [population[0].length, result]
 # **************************************************************************** #
 # ENTRY POINT
 # **************************************************************************** #
@@ -302,10 +312,5 @@ if __name__ == '__main__':
     for i in range(1, len(sys.argv)):
         if sys.argv[i][0] != '-' and sys.argv[i-1] != "--maxtime":
             filename = sys.argv[i]
-
-
-    # print(filename)
-    # print(gui)
-    # print(maxtime)
 
     ga_solve(filename, gui, maxtime)
