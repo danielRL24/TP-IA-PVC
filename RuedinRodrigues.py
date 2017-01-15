@@ -3,12 +3,12 @@ import sys
 import random
 import math
 import time
+import argparse
 
 import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 
 from collections import deque
-import queue
 from copy import copy
 
 # **************************************************************************** #
@@ -275,23 +275,14 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
 # ENTRY POINT
 # **************************************************************************** #
 if __name__ == '__main__':
-    filename = None;
-    gui = True;
-    maxtime = 5;
 
-    if("--nogui" in sys.argv):
-        gui = False;
-    if("--maxtime" in sys.argv):
-        try:
-            maxtime = int(sys.argv[sys.argv.index("--maxtime") + 1])
-        except:
-            print("Maxtime not a number ! (default value = 0)")
+    parser = argparse.ArgumentParser(description="PVC - Ruedin & Rodrigues")
+    parser.add_argument("--nogui", action="store_false", default=True, dest='gui', help="Disable the GUI.")
+    parser.add_argument("--maxtime", type=int, default=5, dest='maxtime', help="Time max before return a solution")
+    parser.add_argument("filename", nargs="?", default=None, help="Path to file contains the cities.")
+    args = parser.parse_args()
 
-    for i in range(1, len(sys.argv)):
-        if sys.argv[i][0] != '-' and sys.argv[i-1] != "--maxtime":
-            filename = sys.argv[i]
-
-    length, path = ga_solve(filename, gui, maxtime)
+    length, path = ga_solve(args.filename, args.gui, args.maxtime)
 
     print("Distance : " + str(length))
     print("Path : " + "-".join(path))
