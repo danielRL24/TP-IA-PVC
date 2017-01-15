@@ -209,9 +209,12 @@ def readFile(filename, cities):
 # **************************************************************************** #
 # GA_SOLVE => MAIN FUNCTION
 # **************************************************************************** #
-def ga_solve(file=None, gui=True, maxtime=0.05):
+def ga_solve(file=None, gui=True, maxtime=0):
 
-    startTime = time.time()
+    if(maxtime == 0):
+        startTime = float("inf")
+    else:
+        startTime = time.time()
 
     cities = []
     if file is not None:
@@ -219,10 +222,8 @@ def ga_solve(file=None, gui=True, maxtime=0.05):
     if gui:
         showGUI(cities)
 
-    i = 0
-
-    sizePop = 60
-    maxRepeat = 10000
+    sizePop = 480
+    maxRepeat = 1000
 
     survivorPop = int(sizePop/2)
 
@@ -278,7 +279,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="PVC - Ruedin & Rodrigues")
     parser.add_argument("--nogui", action="store_false", default=True, dest='gui', help="Disable the GUI.")
-    parser.add_argument("--maxtime", type=int, default=5, dest='maxtime', help="Time max before return a solution")
+    parser.add_argument("--maxtime", type=int, default=0, dest='maxtime', help="Time max before return a solution")
     parser.add_argument("filename", nargs="?", default=None, help="Path to file contains the cities.")
     args = parser.parse_args()
 
